@@ -264,7 +264,7 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
         vastUrl: String
     ) {
         val dataSourceFactory: DataSource.Factory =
-            DefaultHttpDataSourceFactory(getPlayerAgentName())
+            DefaultDataSourceFactory(requireContext(), getPlayerAgentName())
 
         val mediaSourceFactory: MediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
             .setAdsLoaderProvider { adsLoader }
