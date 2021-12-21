@@ -14,7 +14,7 @@ import dev.armoury.android.viewmodel.ArmouryViewModel
  * For now we are considering that applications are going to be implemented
  * in the Portrait-Mode only. TODO Later we should make this class more general
  */
-abstract class ArmouryPlayerActivity<UA: ArmouryUiAction, T : ViewDataBinding, V : ArmouryViewModel<UA>> :
+abstract class ArmouryPlayerActivity<UA : ArmouryUiAction, T : ViewDataBinding, V : ArmouryViewModel<UA>> :
     ArmouryActivity<UA, T, V>() {
 
     protected abstract fun getToolbar(): Toolbar?
@@ -64,7 +64,7 @@ abstract class ArmouryPlayerActivity<UA: ArmouryUiAction, T : ViewDataBinding, V
         }
     }
 
-    protected open fun hasToggleFullScreenButton() : Boolean = true
+    protected open fun hasToggleFullScreenButton(): Boolean = true
 
     private fun toggleNavigationBarVisibility(show: Boolean = true) {
         if (show) {

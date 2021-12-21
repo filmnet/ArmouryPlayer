@@ -24,7 +24,6 @@ import dev.armoury.android.player.data.*
 import dev.armoury.android.player.utils.ArmouryMediaUtils
 import dev.armoury.android.viewmodel.ArmouryViewModel
 
-
 //  TODO : We should moved the player out of this library later.
 abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: Application) :
     ArmouryViewModel<UI>(applicationContext) {

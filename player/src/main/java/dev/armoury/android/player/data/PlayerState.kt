@@ -43,7 +43,7 @@ sealed class PlayerState {
 
     }
 
-    object Pause: PlayerState()
+    object Pause : PlayerState()
 
     class DisplayingVas(var showSkipButton: Boolean = false) : PlayerState()
 

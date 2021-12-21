@@ -30,7 +30,6 @@ import dev.armoury.android.player.widgets.PlayerTimeTextView
 import dev.armoury.android.ui.ArmouryFragment
 import dev.armoury.android.utils.isPortrait
 
-
 abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, V : ArmouryPlayerViewModel<UA>> :
     ArmouryFragment<UA, T, V>() {
 
