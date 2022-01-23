@@ -16,6 +16,8 @@ sealed class PlayerState {
 
     object NeedToPrepare : PlayerState()
 
+    object Buffering : PlayerState()
+
     sealed class Preparing : PlayerState() {
 
         class Video(

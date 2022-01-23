@@ -3,16 +3,19 @@ package dev.armoury.android.player.utils
 import android.net.Uri
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.Format
+import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
-import com.google.android.exoplayer2.util.Util.toLowerInvariant
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import dev.armoury.android.player.R
 import dev.armoury.android.player.data.VideoInfoModel
 import dev.armoury.android.player.data.VideoSpeedModel
 import dev.armoury.android.player.data.VideoTrackModel
+import java.util.*
+import kotlin.Comparator
+import kotlin.collections.ArrayList
 
 object ArmouryMediaUtils {
 
@@ -92,17 +95,16 @@ object ArmouryMediaUtils {
     }
 
     fun buildMediaSource(
-        url: String,
-        userAgent: String
+        url: String
     ): MediaSource {
         val uri = Uri.parse(url)
         when (getMediaType(uri)) {
             C.TYPE_HLS -> return HlsMediaSource
-                .Factory(DefaultHttpDataSourceFactory(userAgent))
-                .createMediaSource(uri)
+                .Factory(DefaultHttpDataSource.Factory())
+                .createMediaSource(MediaItem.fromUri(uri))
             C.TYPE_OTHER -> return ProgressiveMediaSource
-                .Factory(DefaultHttpDataSourceFactory(userAgent))
-                .createMediaSource(uri)
+                .Factory(DefaultHttpDataSource.Factory())
+                .createMediaSource(MediaItem.fromUri(uri))
             else -> throw Throwable("We are not going to handle this type of video!")
         }
     }
@@ -110,7 +112,7 @@ object ArmouryMediaUtils {
     fun getMediaType(url: String) = getMediaType(Uri.parse(url))
 
     private fun getMediaType(uri: Uri): Int {
-        val fileName = toLowerInvariant(uri.path ?: "") // TODO
+        val fileName = (uri.path ?: "").toLowerCase(Locale.US) // TODO
         return when {
             fileName.endsWith(".mpd") or fileName.endsWith("mpd") -> C.TYPE_DASH
             fileName.endsWith(".m3u8") or fileName.endsWith("m3u8") -> C.TYPE_HLS

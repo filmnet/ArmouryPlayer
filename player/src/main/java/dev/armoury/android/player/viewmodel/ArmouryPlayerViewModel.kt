@@ -7,10 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import com.google.ads.interactivemedia.v3.api.AdEvent
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ExoPlaybackException
-import com.google.android.exoplayer2.PlaybackParameters
-import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.source.BehindLiveWindowException
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.PlayerControlView
@@ -189,6 +186,7 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
     //  TODO : The state of the playbackstate should be considered as well
     val showLoadingIndicator: LiveData<Boolean> = Transformations.map(state) {
         when (it) {
+            is PlayerState.Buffering,
             is PlayerState.Preparing,
             is PlayerState.Fetching -> true
             else -> false
@@ -204,11 +202,11 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
         }
     }
 
-    private fun isBehindLiveWindow(e: ExoPlaybackException): Boolean {
-        if (e.type != ExoPlaybackException.TYPE_SOURCE) {
+    private fun isBehindLiveWindow(e: PlaybackException): Boolean {
+        if (e.errorCode != PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
             return false
         }
-        var cause: Throwable? = e.sourceException
+        var cause: Throwable? = e.cause
         while (cause != null) {
             if (cause is BehindLiveWindowException) {
                 return true
@@ -246,12 +244,12 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
                 stopPlaybackCurrentTimeHandler()
             }
             Player.STATE_BUFFERING -> {
-                //  Nothing
+                _state.value = PlayerState.Buffering
             }
         }
     }
 
-    fun onPlayerError(error: ExoPlaybackException?) {
+    fun onPlayerError(error: PlaybackException?) {
         error?.let {
             when {
                 isBehindLiveWindow(it) -> {

@@ -33,7 +33,7 @@ import dev.armoury.android.utils.isPortrait
 abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, V : ArmouryPlayerViewModel<UA>> :
     ArmouryFragment<UA, T, V>() {
 
-    private var exoPlayer: SimpleExoPlayer? = null
+    private var exoPlayer: ExoPlayer? = null
     private var toggleFullScreenButton: AppCompatImageView? = null
     private var isCurrentTimeHandlerRunning = false
     private val playbackCurrentTimeHandler = Handler(Looper.getMainLooper())
@@ -139,7 +139,7 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
         }
     }
 
-    private val playerEventListener = object : Player.EventListener {
+    private val playerEventListener = object : Player.Listener {
 
         override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
             viewModel.onPlaybackStateChanged(
@@ -148,7 +148,7 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
             )
         }
 
-        override fun onPlayerError(error: ExoPlaybackException) {
+        override fun onPlayerError(error: PlaybackException) {
             viewModel.onPlayerError(error)
         }
 
@@ -235,11 +235,13 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
         url: String,
         requestedPosition: Long? = null
     ) {
-        exoPlayer = SimpleExoPlayer
+        exoPlayer = ExoPlayer
             .Builder(activity, DefaultRenderersFactory(activity))
             .setTrackSelector(viewModel.adaptiveTrackSelectionFactory)
             .setLoadControl(DefaultLoadControl())
             .setBandwidthMeter(bandwidthMeter)
+            .setSeekBackIncrementMs(getPlayerSeekIncrementMs())
+            .setSeekForwardIncrementMs(getPlayerSeekIncrementMs())
             .build() // TODO
 
         exoPlayer?.apply {
@@ -249,8 +251,7 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
             setPlayer(this)
             setMediaSource(
                 ArmouryMediaUtils.buildMediaSource(
-                    url = url,
-                    userAgent = getPlayerAgentName()
+                    url = url
                 )
             )
             prepare()
@@ -263,18 +264,20 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
         vastUrl: String
     ) {
         val dataSourceFactory: DataSource.Factory =
-            DefaultDataSourceFactory(requireContext(), getPlayerAgentName())
+            DefaultDataSource.Factory(requireContext())
 
         val mediaSourceFactory: MediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
             .setAdsLoaderProvider { adsLoader }
             .setAdViewProvider(getPlayerView())
 
-        exoPlayer = SimpleExoPlayer
+        exoPlayer = ExoPlayer
             .Builder(activity, DefaultRenderersFactory(activity))
             .setMediaSourceFactory(mediaSourceFactory)
             .setTrackSelector(viewModel.adaptiveTrackSelectionFactory)
             .setLoadControl(DefaultLoadControl())
             .setBandwidthMeter(bandwidthMeter)
+            .setSeekBackIncrementMs(getPlayerSeekIncrementMs())
+            .setSeekForwardIncrementMs(getPlayerSeekIncrementMs())
             .build() // TODO
         adsLoader.setPlayer(exoPlayer)
 
@@ -287,14 +290,14 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
             val contentUri = Uri.parse(url)
             val adTagUri = Uri.parse(vastUrl)
             val mediaItem: MediaItem =
-                MediaItem.Builder().setUri(contentUri).setAdTagUri(adTagUri).build()
+                MediaItem.Builder().setUri(contentUri).setAdsConfiguration(MediaItem.AdsConfiguration.Builder(adTagUri).build()).build()
             setMediaItem(mediaItem)
             prepare()
             requestedPosition?.let { seekTo(it) }
         }
     }
 
-    abstract fun setPlayer(simpleExoPlayer: SimpleExoPlayer)
+    abstract fun setPlayer(simpleExoPlayer: ExoPlayer)
 
     private fun stopPlayer() {
         adsLoader.setPlayer(null)
@@ -337,9 +340,9 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
 
     }
 
-    //  It's going to return the application name in most cases
-    protected abstract fun getPlayerAgentName(): String
-
     //  It's going to return the playerView used in layout
     protected abstract fun getPlayerView(): PlayerView
+
+    //  It's going to return the playerView used in layout
+    protected abstract fun getPlayerSeekIncrementMs(): Long
 }
