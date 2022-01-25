@@ -100,6 +100,10 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
         TODO(reason = "You should override this function if you are going to have the report playback feature")
     }
 
+    protected open fun sendPlaybackErrorLog(error: PlaybackException?) {
+        TODO(reason = "You should override this function if you are going to send log of playback error")
+    }
+
     private fun stopReporting() {
         isReporting = false
         playbackReportHandler.removeCallbacks(playbackReportRunnable)
@@ -250,6 +254,7 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
     }
 
     fun onPlayerError(error: PlaybackException?) {
+        sendPlaybackErrorLog(error)
         error?.let {
             when {
                 isBehindLiveWindow(it) -> {
