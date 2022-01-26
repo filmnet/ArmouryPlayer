@@ -8,10 +8,13 @@ android {
     buildToolsVersion "29.0.3"
 
     defaultConfig {
+        configurations.all {
+            resolutionStrategy { force 'androidx.core:core:1.6.0' }
+        }
         minSdkVersion 17
         targetSdkVersion 30
-        versionCode 90
-        versionName "0.5.44"
+        versionCode 91
+        versionName "0.5.45"
 
         consumerProguardFiles "consumer-rules.pro"
     }
