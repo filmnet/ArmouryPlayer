@@ -104,6 +104,10 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
         TODO(reason = "You should override this function if you are going to send log of playback error")
     }
 
+    protected open fun sendPlaybackErrorLog(error: ErrorModel?) {
+        TODO(reason = "You should override this function if you are going to send log of playback error")
+    }
+
     private fun stopReporting() {
         isReporting = false
         playbackReportHandler.removeCallbacks(playbackReportRunnable)
@@ -228,8 +232,10 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
                 stopPlaybackCurrentTimeHandler()
             }
             Player.STATE_READY -> {
-                _state.value =
-                    if (playWhenReady) PlayerState.Playing.VideoFile else PlayerState.Pause
+                if (_state.value !is PlayerState.Error) {
+                    _state.value =
+                        if (playWhenReady) PlayerState.Playing.VideoFile else PlayerState.Pause
+                }
                 //  TODO Should be checked
                 if (needReportPlayback()) {
                     when (playWhenReady) {
@@ -451,6 +457,7 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
     }
 
     protected fun onSeriousErrorOccurred(errorModel: ErrorModel) {
+        sendPlaybackErrorLog(errorModel)
         stopReporting()
         stopPlaybackCurrentTimeHandler()
         _state.value = PlayerState.Error.Playing(messageModel = errorModel.messageModel)
