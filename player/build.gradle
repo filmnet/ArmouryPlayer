@@ -13,8 +13,8 @@ android {
         }
         minSdkVersion 17
         targetSdkVersion 30
-        versionCode 92
-        versionName "0.5.46"
+        versionCode 93
+        versionName "0.5.47"
 
         consumerProguardFiles "consumer-rules.pro"
     }
