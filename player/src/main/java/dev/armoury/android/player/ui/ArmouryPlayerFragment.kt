@@ -158,10 +158,6 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
         viewModel.onAdEvent(it)
     }
 
-    private val bandwidthMeter: DefaultBandwidthMeter by lazy {
-        DefaultBandwidthMeter.Builder(activity).build()
-    }
-
     override fun startObserving() {
         super.startObserving()
         viewModel.playerUiActions.observe(this, playerUiActionObserver)
@@ -239,7 +235,7 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
             .Builder(activity, DefaultRenderersFactory(activity))
             .setTrackSelector(viewModel.adaptiveTrackSelectionFactory)
             .setLoadControl(DefaultLoadControl())
-            .setBandwidthMeter(bandwidthMeter)
+            .setBandwidthMeter(viewModel.bandwidthMeter)
             .setSeekBackIncrementMs(getPlayerSeekIncrementMs())
             .setSeekForwardIncrementMs(getPlayerSeekIncrementMs())
             .build() // TODO
@@ -275,7 +271,7 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
             .setMediaSourceFactory(mediaSourceFactory)
             .setTrackSelector(viewModel.adaptiveTrackSelectionFactory)
             .setLoadControl(DefaultLoadControl())
-            .setBandwidthMeter(bandwidthMeter)
+            .setBandwidthMeter(viewModel.bandwidthMeter)
             .setSeekBackIncrementMs(getPlayerSeekIncrementMs())
             .setSeekForwardIncrementMs(getPlayerSeekIncrementMs())
             .build() // TODO

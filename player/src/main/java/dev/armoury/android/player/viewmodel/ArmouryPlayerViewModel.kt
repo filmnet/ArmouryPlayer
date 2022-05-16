@@ -11,6 +11,7 @@ import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.source.BehindLiveWindowException
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.PlayerControlView
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import dev.armoury.android.data.ArmouryUiAction
 import dev.armoury.android.lifecycle.SingleLiveEvent
 import dev.armoury.android.widget.MessageView
@@ -19,6 +20,7 @@ import dev.armoury.android.player.R
 import dev.armoury.android.data.ErrorModel
 import dev.armoury.android.player.data.*
 import dev.armoury.android.player.utils.ArmouryMediaUtils
+import dev.armoury.android.player.utils.SmoothTrackSelectionFactory
 import dev.armoury.android.viewmodel.ArmouryViewModel
 
 //  TODO : We should moved the player out of this library later.
@@ -144,8 +146,15 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
         )
     }
 
+    val bandwidthMeter: DefaultBandwidthMeter by lazy {
+        DefaultBandwidthMeter.Builder(applicationContext).build()
+    }
+
     val adaptiveTrackSelectionFactory by lazy {
-        DefaultTrackSelector(applicationContext)
+        DefaultTrackSelector(
+            applicationContext,
+            SmoothTrackSelectionFactory(defaultBandwidthMeter = bandwidthMeter)
+        )
     }
 
     private val qualityRendererIndex: Int by lazy {
