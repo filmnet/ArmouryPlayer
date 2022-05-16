@@ -11,6 +11,7 @@ import androidx.appcompat.widget.AppCompatImageView
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.Observer
 import com.google.ads.interactivemedia.v3.api.AdEvent
+import com.google.ads.interactivemedia.v3.api.ImaSdkFactory
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ext.ima.ImaAdsLoader
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
@@ -47,7 +48,9 @@ abstract class ArmouryPlayerFragment<UA : ArmouryUiAction, T : ViewDataBinding, 
         }
     }
     private val adsLoader: ImaAdsLoader by lazy {
-        ImaAdsLoader.Builder(requireContext()).setAdEventListener(adsLoaderEventListener).build()
+        val settings = ImaSdkFactory.getInstance().createImaSdkSettings()
+        settings.language = "fa"
+        ImaAdsLoader.Builder(requireContext()).setImaSdkSettings(settings).setAdEventListener(adsLoaderEventListener).build()
     }
 
     private val playerUiActionObserver: Observer<PlayerUiActions?> by lazy {
