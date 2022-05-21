@@ -30,11 +30,11 @@ class SmoothTrackSelectionFactory(
                 for (i in tracks.indices) {
                     if (i >= 4) {
                         adaptiveTrackSelection.blacklist(
-                            tracks[i],
+                            i,
                             0
                         )
                     } else {
-                        adaptiveTrackSelection.blacklist(tracks[i], BLACKLIST_DURATION)
+                        adaptiveTrackSelection.blacklist(i, BLACKLIST_DURATION)
                     }
                 }
             }
@@ -42,11 +42,11 @@ class SmoothTrackSelectionFactory(
                 for (i in tracks.indices) {
                     if (i >= 2) {
                         adaptiveTrackSelection.blacklist(
-                            tracks[i],
+                            i,
                             0
                         )
                     } else {
-                        adaptiveTrackSelection.blacklist(tracks[i], BLACKLIST_DURATION)
+                        adaptiveTrackSelection.blacklist(i, BLACKLIST_DURATION)
                     }
                 }
             }
@@ -54,11 +54,11 @@ class SmoothTrackSelectionFactory(
                 for (i in tracks.indices) {
                     if (i >= 1) {
                         adaptiveTrackSelection.blacklist(
-                            tracks[i],
+                            i,
                             0
                         )
                     } else {
-                        adaptiveTrackSelection.blacklist(tracks[i], BLACKLIST_DURATION)
+                        adaptiveTrackSelection.blacklist(i, BLACKLIST_DURATION)
                     }
                 }
             }
