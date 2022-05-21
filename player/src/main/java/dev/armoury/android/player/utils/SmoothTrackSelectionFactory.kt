@@ -24,43 +24,14 @@ class SmoothTrackSelectionFactory(
             tracks,
             defaultBandwidthMeter
         )
-
-        when (TrafficUtils.getConnectionQualityBasedOnNetworkSpeed()) {
-            TrafficUtils.Companion.ConnectionQuality.POOR -> {
-                for (i in tracks.indices) {
-                    if (i >= 4) {
-                        adaptiveTrackSelection.blacklist(
-                            i,
-                            0
-                        )
-                    } else {
-                        adaptiveTrackSelection.blacklist(i, BLACKLIST_DURATION)
-                    }
-                }
-            }
-            TrafficUtils.Companion.ConnectionQuality.MODERATE -> {
-                for (i in tracks.indices) {
-                    if (i >= 2) {
-                        adaptiveTrackSelection.blacklist(
-                            i,
-                            0
-                        )
-                    } else {
-                        adaptiveTrackSelection.blacklist(i, BLACKLIST_DURATION)
-                    }
-                }
-            }
-            else -> {
-                for (i in tracks.indices) {
-                    if (i >= 1) {
-                        adaptiveTrackSelection.blacklist(
-                            i,
-                            0
-                        )
-                    } else {
-                        adaptiveTrackSelection.blacklist(i, BLACKLIST_DURATION)
-                    }
-                }
+        for (i in tracks.indices) {
+            if (i >= 1) {
+                adaptiveTrackSelection.blacklist(
+                    i,
+                    0
+                )
+            } else {
+                adaptiveTrackSelection.blacklist(i, BLACKLIST_DURATION)
             }
         }
         return adaptiveTrackSelection
