@@ -12,6 +12,7 @@ import com.google.android.exoplayer2.source.BehindLiveWindowException
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.PlayerControlView
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
+import com.google.android.exoplayer2.upstream.HttpDataSource
 import dev.armoury.android.data.ArmouryUiAction
 import dev.armoury.android.lifecycle.SingleLiveEvent
 import dev.armoury.android.widget.MessageView
@@ -108,6 +109,10 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
 
     protected open fun sendPlaybackErrorLog(error: ErrorModel?) {
         TODO(reason = "You should override this function if you are going to send log of playback error")
+    }
+
+    protected open fun displayPlayerExceptionMessage(error: PlaybackException?) {
+        TODO(reason = "You should override this function if you are going to display exception of player")
     }
 
     private fun stopReporting() {
@@ -280,18 +285,26 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
                     }
                 }
                 else -> {
-                    _messageModel.value = MessageModel(
-                        state = MessageView.States.ERROR,
-                        descriptionTextRes = R.string.message_error_playing_video,
-                        buttonTextRes = R.string.button_retry
-                    )
-                    _state.value = PlayerState.Error.Playing(
-                        MessageModel(
-                            state = MessageView.States.ERROR,
-                            descriptionTextRes = R.string.message_error_playing_video,
-                            buttonTextRes = R.string.button_retry
-                        )
-                    )
+                    when ((it.cause as HttpDataSource.InvalidResponseCodeException).responseCode) {
+                        400, 401, 403 -> {
+                            displayPlayerExceptionMessage(error = it)
+                        }
+                        else -> {
+                            _messageModel.value = MessageModel(
+                                state = MessageView.States.ERROR,
+                                descriptionTextRes = R.string.message_error_playing_video,
+                                buttonTextRes = R.string.button_retry
+                            )
+                            _state.value = PlayerState.Error.Playing(
+                                MessageModel(
+                                    state = MessageView.States.ERROR,
+                                    descriptionTextRes = R.string.message_error_playing_video,
+                                    buttonTextRes = R.string.button_retry
+                                )
+                            )
+                        }
+                    }
+
                 }
             }
         }
