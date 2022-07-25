@@ -285,203 +285,183 @@ abstract class ArmouryPlayerViewModel<UI : ArmouryUiAction>(applicationContext: 
                     }
                 }
                 else -> {
-                    when ((it.cause as HttpDataSource.InvalidResponseCodeException).responseCode) {
-                        400, 401, 403 -> {
-                            displayPlayerExceptionMessage(error = it)
-                        }
-                        else -> {
-                            _messageModel.value = MessageModel(
-                                state = MessageView.States.ERROR,
-                                descriptionTextRes = R.string.message_error_playing_video,
-                                buttonTextRes = R.string.button_retry
-                            )
-                            _state.value = PlayerState.Error.Playing(
-                                MessageModel(
-                                    state = MessageView.States.ERROR,
-                                    descriptionTextRes = R.string.message_error_playing_video,
-                                    buttonTextRes = R.string.button_retry
-                                )
-                            )
-                        }
+                    displayPlayerExceptionMessage(error = it)
+                }
+            }
+        }
+
+        fun onAdEvent(adEvent: AdEvent) {
+            onAdEventListener(adEvent = adEvent)
+        }
+
+        protected open fun onAdEventListener(adEvent: AdEvent) {
+            TODO(reason = "You should override this function if you are going to handle ad events")
+        }
+
+        protected fun onSpeedSelected(selectedSpeed: VideoSpeedModel) {
+            if (this.selectedSpeed.value == selectedSpeed) return
+            this.selectedSpeed.value = selectedSpeed
+            _playerUiActions.value = PlayerUiActions.UpdatePlayerParam(
+                playerParam = PlaybackParameters(selectedSpeed.value, selectedSpeed.value)
+            )
+        }
+
+        protected fun onQualitySelected(selectedTrack: VideoTrackModel.Quality) {
+            if (this.selectedQuality.value == selectedTrack) return
+            this.selectedQuality.value = selectedTrack
+            val parametersBuilder = adaptiveTrackSelectionFactory.parameters.buildUpon()
+            parametersBuilder.setRendererDisabled(qualityRendererIndex, false)
+            if (selectedTrack.isAutoQuality()) {
+                parametersBuilder.clearSelectionOverrides(qualityRendererIndex)
+            } else {
+                val override = DefaultTrackSelector.SelectionOverride(
+                    selectedTrack.groupIndex,
+                    selectedTrack.trackIndex
+                )
+                adaptiveTrackSelectionFactory.currentMappedTrackInfo?.getTrackGroups(
+                    qualityRendererIndex
+                )?.let { array ->
+                    parametersBuilder.setSelectionOverride(
+                        qualityRendererIndex,
+                        array,
+                        override
+                    )
+                }
+            }
+            adaptiveTrackSelectionFactory.parameters = parametersBuilder.build()
+        }
+
+        protected fun onAudioSelected(selectedTrack: VideoTrackModel.Audio) {
+            if (this.selectedAudio.value == selectedTrack) return
+            this.selectedAudio.value = selectedTrack
+            val parametersBuilder = adaptiveTrackSelectionFactory.parameters.buildUpon()
+            parametersBuilder.setRendererDisabled(audioRendererIndex, false)
+
+            val override = DefaultTrackSelector.SelectionOverride(
+                selectedTrack.groupIndex,
+                selectedTrack.trackIndex
+            )
+
+            adaptiveTrackSelectionFactory.currentMappedTrackInfo?.getTrackGroups(audioRendererIndex)
+                ?.let { array ->
+                    parametersBuilder.setSelectionOverride(
+                        audioRendererIndex,
+                        array,
+                        override
+                    )
+                }
+
+            adaptiveTrackSelectionFactory.parameters = parametersBuilder.build()
+        }
+
+        protected fun onSubtitleSelected(selectedTrack: VideoTrackModel.Subtitle) {
+            if (this.selectedSubtitle.value == selectedTrack) return
+            this.selectedSubtitle.value = selectedTrack
+            val parametersBuilder = adaptiveTrackSelectionFactory.parameters.buildUpon()
+            if (selectedTrack.isNoSubTitle()) {
+                parametersBuilder.clearSelectionOverrides(subtitleRendererIndex)
+                parametersBuilder.setRendererDisabled(subtitleRendererIndex, true)
+            } else {
+                parametersBuilder.setRendererDisabled(subtitleRendererIndex, false)
+                val override = DefaultTrackSelector.SelectionOverride(
+                    selectedTrack.groupIndex,
+                    selectedTrack.trackIndex
+                )
+                adaptiveTrackSelectionFactory.currentMappedTrackInfo?.getTrackGroups(
+                    subtitleRendererIndex
+                )?.let { array ->
+                    parametersBuilder.setSelectionOverride(
+                        subtitleRendererIndex,
+                        array,
+                        override
+                    )
+                }
+            }
+            adaptiveTrackSelectionFactory.parameters = parametersBuilder.build()
+        }
+
+        fun onViewClicked(id: Int) {
+            when (id) {
+                R.id.exo_settings -> {
+                    handleClickSettingButton()
+                }
+                R.id.exo_toggle_full_screen -> {
+                    _playerUiActions.value = PlayerUiActions.ToggleFullScreen
+                }
+                R.id.exo_replay -> {
+                    videoUrl?.let {
+                        _playerUiActions.value =
+                            PlayerUiActions.PreparePlayer(videoFileUrl = it, vastFileUrl = vastUrl)
                     }
-
                 }
             }
         }
-    }
 
-    fun onAdEvent(adEvent: AdEvent) {
-        onAdEventListener(adEvent = adEvent)
-    }
+        protected open fun handleClickSettingButton() {
+            TODO("Should be implemented")
+        }
 
-    protected open fun onAdEventListener(adEvent: AdEvent) {
-        TODO(reason = "You should override this function if you are going to handle ad events")
-    }
-
-    protected fun onSpeedSelected(selectedSpeed: VideoSpeedModel) {
-        if (this.selectedSpeed.value == selectedSpeed) return
-        this.selectedSpeed.value = selectedSpeed
-        _playerUiActions.value = PlayerUiActions.UpdatePlayerParam(
-            playerParam = PlaybackParameters(selectedSpeed.value, selectedSpeed.value)
-        )
-    }
-
-    protected fun onQualitySelected(selectedTrack: VideoTrackModel.Quality) {
-        if (this.selectedQuality.value == selectedTrack) return
-        this.selectedQuality.value = selectedTrack
-        val parametersBuilder = adaptiveTrackSelectionFactory.parameters.buildUpon()
-        parametersBuilder.setRendererDisabled(qualityRendererIndex, false)
-        if (selectedTrack.isAutoQuality()) {
-            parametersBuilder.clearSelectionOverrides(qualityRendererIndex)
-        } else {
-            val override = DefaultTrackSelector.SelectionOverride(
-                selectedTrack.groupIndex,
-                selectedTrack.trackIndex
+        protected fun onSpeedOptionSelected() {
+            _playerUiActions.value = PlayerUiActions.ShowSpeedPicker(
+                currentSpeedModel = selectedSpeed.value!!
             )
-            adaptiveTrackSelectionFactory.currentMappedTrackInfo?.getTrackGroups(
-                qualityRendererIndex
-            )?.let { array ->
-                parametersBuilder.setSelectionOverride(
-                    qualityRendererIndex,
-                    array,
-                    override
-                )
+        }
+
+        //  TODO Performance Improvement needed
+        protected fun onQualityOptionSelected() {
+            _playerUiActions.value = PlayerUiActions.ShowQualityPicker(
+                currentQuality = selectedQuality.value!!,
+                availableQualityTracks = ArmouryMediaUtils.getVideoTrackList(
+                    adaptiveTrackSelectionFactory.currentMappedTrackInfo
+                ) ?: ArrayList()
+            )
+        }
+
+        fun onFragmentStopped(playerPosition: Long?) {
+            _state.value = PlayerState.Pause
+            if (hasTimeShift.value == true) {
+                playerLastPosition = playerPosition
             }
         }
-        adaptiveTrackSelectionFactory.parameters = parametersBuilder.build()
-    }
 
-    protected fun onAudioSelected(selectedTrack: VideoTrackModel.Audio) {
-        if (this.selectedAudio.value == selectedTrack) return
-        this.selectedAudio.value = selectedTrack
-        val parametersBuilder = adaptiveTrackSelectionFactory.parameters.buildUpon()
-        parametersBuilder.setRendererDisabled(audioRendererIndex, false)
-
-        val override = DefaultTrackSelector.SelectionOverride(
-            selectedTrack.groupIndex,
-            selectedTrack.trackIndex
-        )
-
-        adaptiveTrackSelectionFactory.currentMappedTrackInfo?.getTrackGroups(audioRendererIndex)
-            ?.let { array ->
-                parametersBuilder.setSelectionOverride(
-                    audioRendererIndex,
-                    array,
-                    override
-                )
-            }
-
-        adaptiveTrackSelectionFactory.parameters = parametersBuilder.build()
-    }
-
-    protected fun onSubtitleSelected(selectedTrack: VideoTrackModel.Subtitle) {
-        if (this.selectedSubtitle.value == selectedTrack) return
-        this.selectedSubtitle.value = selectedTrack
-        val parametersBuilder = adaptiveTrackSelectionFactory.parameters.buildUpon()
-        if (selectedTrack.isNoSubTitle()) {
-            parametersBuilder.clearSelectionOverrides(subtitleRendererIndex)
-            parametersBuilder.setRendererDisabled(subtitleRendererIndex, true)
-        } else {
-            parametersBuilder.setRendererDisabled(subtitleRendererIndex, false)
-            val override = DefaultTrackSelector.SelectionOverride(
-                selectedTrack.groupIndex,
-                selectedTrack.trackIndex
-            )
-            adaptiveTrackSelectionFactory.currentMappedTrackInfo?.getTrackGroups(
-                subtitleRendererIndex
-            )?.let { array ->
-                parametersBuilder.setSelectionOverride(
-                    subtitleRendererIndex,
-                    array,
-                    override
-                )
-            }
-        }
-        adaptiveTrackSelectionFactory.parameters = parametersBuilder.build()
-    }
-
-    fun onViewClicked(id: Int) {
-        when (id) {
-            R.id.exo_settings -> {
-                handleClickSettingButton()
-            }
-            R.id.exo_toggle_full_screen -> {
-                _playerUiActions.value = PlayerUiActions.ToggleFullScreen
-            }
-            R.id.exo_replay -> {
-                videoUrl?.let {
-                    _playerUiActions.value =
-                        PlayerUiActions.PreparePlayer(videoFileUrl = it, vastFileUrl = vastUrl)
+        fun onFragmentStarted() {
+            if (_state.value == PlayerState.Pause) {
+                videoUrl?.let { url ->
+                    vastUrl?.let { vastUrl ->
+                        _state.value = PlayerState.Preparing.Vast(
+                            url = url,
+                            requestedPosition = playerLastPosition,
+                            vastUrl = vastUrl
+                        )
+                    } ?: kotlin.run {
+                        _state.value = PlayerState.Preparing.Video(
+                            url = url,
+                            requestedPosition = playerLastPosition
+                        )
+                    }
                 }
             }
         }
-    }
 
-    protected open fun handleClickSettingButton() {
-        TODO("Should be implemented")
-    }
-
-    protected fun onSpeedOptionSelected() {
-        _playerUiActions.value = PlayerUiActions.ShowSpeedPicker(
-            currentSpeedModel = selectedSpeed.value!!
-        )
-    }
-
-    //  TODO Performance Improvement needed
-    protected fun onQualityOptionSelected() {
-        _playerUiActions.value = PlayerUiActions.ShowQualityPicker(
-            currentQuality = selectedQuality.value!!,
-            availableQualityTracks = ArmouryMediaUtils.getVideoTrackList(
-                adaptiveTrackSelectionFactory.currentMappedTrackInfo
-            ) ?: ArrayList()
-        )
-    }
-
-    fun onFragmentStopped(playerPosition: Long?) {
-        _state.value = PlayerState.Pause
-        if (hasTimeShift.value == true) {
-            playerLastPosition = playerPosition
+        override fun onCleared() {
+            if (needReportPlayback()) stopReporting()
+            stopPlaybackCurrentTimeHandler()
+            super.onCleared()
         }
-    }
 
-    fun onFragmentStarted() {
-        if (_state.value == PlayerState.Pause) {
-            videoUrl?.let { url ->
-                vastUrl?.let { vastUrl ->
-                    _state.value = PlayerState.Preparing.Vast(
-                        url = url,
-                        requestedPosition = playerLastPosition,
-                        vastUrl = vastUrl
-                    )
-                } ?: kotlin.run {
-                    _state.value = PlayerState.Preparing.Video(
-                        url = url,
-                        requestedPosition = playerLastPosition
-                    )
-                }
+        override fun handleErrorInChild(errorModel: ErrorModel) {
+            when (errorModel.requestCode) {
+                getReportPlaybackRequestCode() -> if (isSeriousReportPlaybackError(errorModel = errorModel)) onSeriousErrorOccurred(
+                    errorModel
+                )
+                else -> onSeriousErrorOccurred(errorModel)
             }
         }
-    }
 
-    override fun onCleared() {
-        if (needReportPlayback()) stopReporting()
-        stopPlaybackCurrentTimeHandler()
-        super.onCleared()
-    }
-
-    override fun handleErrorInChild(errorModel: ErrorModel) {
-        when (errorModel.requestCode) {
-            getReportPlaybackRequestCode() -> if (isSeriousReportPlaybackError(errorModel = errorModel)) onSeriousErrorOccurred(
-                errorModel
-            )
-            else -> onSeriousErrorOccurred(errorModel)
+        protected fun onSeriousErrorOccurred(errorModel: ErrorModel) {
+            sendPlaybackErrorLog(errorModel)
+            stopReporting()
+            stopPlaybackCurrentTimeHandler()
+            _state.value = PlayerState.Error.Playing(messageModel = errorModel.messageModel)
         }
     }
-
-    protected fun onSeriousErrorOccurred(errorModel: ErrorModel) {
-        sendPlaybackErrorLog(errorModel)
-        stopReporting()
-        stopPlaybackCurrentTimeHandler()
-        _state.value = PlayerState.Error.Playing(messageModel = errorModel.messageModel)
-    }
-}
