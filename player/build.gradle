@@ -13,8 +13,8 @@ android {
         }
         minSdkVersion 17
         targetSdkVersion 30
-        versionCode 100
-        versionName "0.5.54"
+        versionCode 101
+        versionName "0.5.55"
 
         consumerProguardFiles "consumer-rules.pro"
     }
@@ -46,8 +46,8 @@ dependencies {
     implementation "com.google.android.material:material:$material_version"
 
     //  Armoury
-    implementation "com.github.masoud799:Ui:$armoury_base_ui"
-    implementation "com.github.masoud799:MessageView:$armoury_message_view"
+    implementation "com.github.filmnet:Ui:$armoury_base_ui"
+    implementation "com.github.filmnet:MessageView:$armoury_message_view"
 
     //  Exo Player
     implementation "com.google.android.exoplayer:exoplayer:$exo_player_version"
